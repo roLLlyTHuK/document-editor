@@ -12,7 +12,7 @@ export default function ExcelEditor({ content, onChange, title }: { content: str
     if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].name !== undefined) {
         initialData = parsed;
     } else if (Array.isArray(parsed) && Array.isArray(parsed[0])) {
-        const grid = parsed.map(row => row.map(cell => (cell ? { v: cell, m: String(cell) } : null)));
+        const grid = parsed.map((row: any[]) => row.map((cell: any) => (cell ? { v: cell, m: String(cell) } : null)));
         initialData = [{ name: 'Sheet1', data: grid }];
     } else {
         throw new Error();
