@@ -16,7 +16,7 @@ export default function Dashboard() {
   const fetchDocuments = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     let cloudDocs: any[] = [];
-    
+
     if (user) {
       const { data, error } = await supabase
         .from('documents')
@@ -38,13 +38,13 @@ export default function Dashboard() {
     // Get strictly local draft docs (unsaved)
     const localDrafts: any[] = [];
     for (let i = 0; i < localStorage.length; i++) {
-       const key = localStorage.key(i);
-       if (key?.startsWith('doc_local_')) {
-          try {
-             const d = JSON.parse(localStorage.getItem(key)!);
-             localDrafts.push({...d, id: key.replace('doc_', '')});
-          } catch {}
-       }
+      const key = localStorage.key(i);
+      if (key?.startsWith('doc_local_')) {
+        try {
+          const d = JSON.parse(localStorage.getItem(key)!);
+          localDrafts.push({ ...d, id: key.replace('doc_', '') });
+        } catch { }
+      }
     }
 
     setDocuments(cloudDocs);
@@ -54,22 +54,22 @@ export default function Dashboard() {
   const createDocument = async (type: 'word' | 'excel', initialContent?: string, initialTitle?: string) => {
     const { data: user } = await supabase.auth.getUser();
     if (!user.user) {
-       alert("Пожалуйста, войдите в систему.");
-       return;
+      alert("Пожалуйста, войдите в систему.");
+      return;
     }
 
     // Initialize with blank valid binary content if none provided
     let content = initialContent;
     if (!content) {
-       if (type === 'word') {
-          // A minimal blank docx (Base64)
-          content = "UEsDBBQAAAAIAAAAIQAAAAAAAAAAAAAAAAAFAAAAd29yZC9QSwMEFAAAAAgAAAAhAAAAAAAAAAAAAAAAABIAAAB3b3JkL2RvY3VtZW50LnhtbP0DUEsBAi0AFAAAAAgAAAAhAAAAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAAAAAAAAAHdvcmQvUEsBAi0AFAAAAAgAAAAhAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAAAAAAAAAHdvcmQvZG9jdW1lbnQueG1sUEsFBgAAAAACAAIAfQAAAD4AAAAAAA=="; 
-       } else {
-          // A minimal blank xlsx via SheetJS would be safer, but let's use a placeholder or better: initialize via helper
-          const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[]]), "Sheet1");
-          content = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
-       }
+      if (type === 'word') {
+        // A minimal blank docx (Base64)
+        content = "";
+      } else {
+        // A minimal blank xlsx via SheetJS would be safer, but let's use a placeholder or better: initialize via helper
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([[]]), "Sheet1");
+        content = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+      }
     }
 
     const newDoc = {
@@ -91,7 +91,7 @@ export default function Dashboard() {
     } else {
       if (error) console.error("Dashboard: Supabase insert error:", error);
       const localId = 'local_' + Date.now();
-      localStorage.setItem(`doc_${localId}`, JSON.stringify({...newDoc, id: localId, created_at: new Date().toISOString()}));
+      localStorage.setItem(`doc_${localId}`, JSON.stringify({ ...newDoc, id: localId, created_at: new Date().toISOString() }));
       console.warn("Dashboard: Falling back to local storage for doc:", localId);
       navigate(`/document/${localId}`);
     }
@@ -103,7 +103,7 @@ export default function Dashboard() {
 
     const ext = file.name.split('.').pop()?.toLowerCase();
     const type = (ext === 'xlsx' || ext === 'xls' || ext === 'csv') ? 'excel' : 'word';
-    
+
     const reader = new FileReader();
     reader.onload = async () => {
       const base64 = (reader.result as string).split(',')[1];
@@ -114,7 +114,7 @@ export default function Dashboard() {
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
-    if(id.startsWith('local_')) {
+    if (id.startsWith('local_')) {
       localStorage.removeItem(`doc_${id}`);
       fetchDocuments();
       return;
@@ -141,50 +141,50 @@ export default function Dashboard() {
           <button className="btn btn-primary" style={{ width: '100%', marginBottom: '16px' }} onClick={() => createDocument('excel')}>
             <Plus size={16} /> Новая таблица (.xlsx)
           </button>
-          
+
           <input type="file" id="dash-upload" style={{ display: 'none' }} onChange={handleFileUpload} accept=".docx,.doc,.xlsx,.xls,.csv" />
           <button className="btn" style={{ width: '100%', marginBottom: '24px', background: 'var(--surface-hover)' }} onClick={() => document.getElementById('dash-upload')?.click()}>
             <Upload size={16} /> Открыть с диска
           </button>
 
           <div style={{ marginTop: '24px' }}>
-             <div style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px', paddingLeft: '8px' }}>
-                Облачное хранилище
-             </div>
-             {documents.map(doc => (
-               <Link to={`/document/${doc.id}`} className="nav-item space-between" key={doc.id}>
-                 <div className="flex-row">
-                    {doc.type === 'word' ? <FileText size={16} color="#3b82f6" /> : <TableIcon size={16} color="#10b981" />}
-                    <span style={{ fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>{doc.title}</span>
-                 </div>
-                 <Trash2 size={14} color="var(--danger)" style={{ cursor: 'pointer' }} onClick={(e) => handleDelete(doc.id, e)} />
-               </Link>
-             ))}
-             {documents.length === 0 && (
-               <div style={{ fontSize: '12px', color: 'var(--text-muted)', paddingLeft: '8px' }}>Нет файлов в облаке</div>
-             )}
+            <div style={{ fontSize: '11px', color: 'var(--primary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px', paddingLeft: '8px' }}>
+              Облачное хранилище
+            </div>
+            {documents.map(doc => (
+              <Link to={`/document/${doc.id}`} className="nav-item space-between" key={doc.id}>
+                <div className="flex-row">
+                  {doc.type === 'word' ? <FileText size={16} color="#3b82f6" /> : <TableIcon size={16} color="#10b981" />}
+                  <span style={{ fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>{doc.title}</span>
+                </div>
+                <Trash2 size={14} color="var(--danger)" style={{ cursor: 'pointer' }} onClick={(e) => handleDelete(doc.id, e)} />
+              </Link>
+            ))}
+            {documents.length === 0 && (
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', paddingLeft: '8px' }}>Нет файлов в облаке</div>
+            )}
           </div>
 
           <div style={{ marginTop: '24px' }}>
-             <div style={{ fontSize: '11px', color: '#8b5cf6', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px', paddingLeft: '8px' }}>
-                История изменений
-             </div>
-             {history.map(doc => {
-               return (
-                 <Link to={`/document/${doc.id}`} className="nav-item space-between" key={doc.id} style={{ opacity: 0.85 }}>
-                   <div className="flex-row">
-                      {doc.type === 'word' ? <FileText size={16} color="#3b82f6" /> : <TableIcon size={16} color="#10b981" />}
-                      <span style={{ fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>{doc.title}</span>
-                   </div>
-                   {doc.id.startsWith('local_') && (
-                     <Trash2 size={14} color="var(--danger)" style={{ cursor: 'pointer' }} onClick={(e) => handleDelete(doc.id, e)} />
-                   )}
-                 </Link>
-               );
-             })}
-             {history.length === 0 && (
-               <div style={{ fontSize: '12px', color: 'var(--text-muted)', paddingLeft: '8px' }}>История пуста</div>
-             )}
+            <div style={{ fontSize: '11px', color: '#8b5cf6', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px', paddingLeft: '8px' }}>
+              История изменений
+            </div>
+            {history.map(doc => {
+              return (
+                <Link to={`/document/${doc.id}`} className="nav-item space-between" key={doc.id} style={{ opacity: 0.85 }}>
+                  <div className="flex-row">
+                    {doc.type === 'word' ? <FileText size={16} color="#3b82f6" /> : <TableIcon size={16} color="#10b981" />}
+                    <span style={{ fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px' }}>{doc.title}</span>
+                  </div>
+                  {doc.id.startsWith('local_') && (
+                    <Trash2 size={14} color="var(--danger)" style={{ cursor: 'pointer' }} onClick={(e) => handleDelete(doc.id, e)} />
+                  )}
+                </Link>
+              );
+            })}
+            {history.length === 0 && (
+              <div style={{ fontSize: '12px', color: 'var(--text-muted)', paddingLeft: '8px' }}>История пуста</div>
+            )}
           </div>
         </div>
         <div style={{ padding: '16px', borderTop: '1px solid var(--border)' }}>
